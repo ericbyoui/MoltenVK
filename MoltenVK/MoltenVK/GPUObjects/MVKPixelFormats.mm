@@ -1503,7 +1503,7 @@ void MVKPixelFormats::modifyMTLFormatCapabilities() {
 
 
 // Mac Catalyst does not support feature sets, so we redefine them to GPU families in MVKDevice.h.
-#if MVK_MACCAT
+#if TRUE
 #define addFeatSetMTLPixFmtCaps(FEAT_SET, MTL_FMT, CAPS)  \
 	addMTLPixelFormatCapabilities(mtlDevice, MTLFeatureSet_ ##FEAT_SET, 11.0, MTLPixelFormat ##MTL_FMT, kMVKMTLFmtCaps ##CAPS)
 
@@ -2018,14 +2018,14 @@ void MVKPixelFormats::buildVkFormatMaps() {
 			if (vkDesc.needsSwizzle()) {
 				if (_physicalDevice) {
 					id<MTLDevice> mtlDev = _physicalDevice->getMTLDevice();
-#if MVK_MACCAT
-					bool supportsNativeTextureSwizzle = [mtlDev supportsFamily: MTLGPUFamilyMacCatalyst2];
+#if TRUE
+                    bool supportsNativeTextureSwizzle = true;//false;//[mtlDev supportsFamily: MTLGPUFamilyMacCatalyst2];
 #elif MVK_MACOS
 					bool supportsNativeTextureSwizzle = mvkOSVersionIsAtLeast(10.15) && [mtlDev supportsFeatureSet: MTLFeatureSet_macOS_GPUFamily2_v1];
 #endif
-#if MVK_IOS || MVK_TVOS
-					bool supportsNativeTextureSwizzle = mtlDev && mvkOSVersionIsAtLeast(13.0);
-#endif
+//#if MVK_IOS || MVK_TVOS
+//					bool supportsNativeTextureSwizzle = mtlDev && mvkOSVersionIsAtLeast(13.0);
+//#endif
 					if (!supportsNativeTextureSwizzle && !mvkConfig().fullImageViewSwizzle) {
 						vkDesc.mtlPixelFormat = vkDesc.mtlPixelFormatSubstitute = MTLPixelFormatInvalid;
 					}
@@ -2132,12 +2132,12 @@ void MVKPixelFormats::setFormatProperties(MVKVkFormatDesc& vkDesc) {
 #if MVK_MACOS && !MVK_MACCAT
 	bool supportsStencilFeedback = [mtlDev supportsFeatureSet: MTLFeatureSet_macOS_GPUFamily2_v1];
 #endif
-#if MVK_MACCAT
-	bool supportsStencilFeedback = [mtlDev supportsFamily: MTLGPUFamilyMacCatalyst2];
+#if TRUE
+    bool supportsStencilFeedback = true;//false;//[mtlDev supportsFamily: MTLGPUFamilyMacCatalyst2];
 #endif
-#if MVK_IOS
-	bool supportsStencilFeedback = [mtlDev supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily5_v1];
-#endif
+//#if MVK_IOS
+//    bool supportsStencilFeedback = false;//[mtlDev supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily5_v1];
+//#endif
 #if MVK_TVOS
 	bool supportsStencilFeedback = (mtlDev && !mtlDev);		// Really just false...but silence warning on unused mtlDev otherwise
 #endif

@@ -52,7 +52,7 @@ using namespace std;
 #endif
 
 // Mac Catalyst does not support feature sets, so we redefine them to GPU families in MVKDevice.h.
-#if MVK_MACCAT
+#if TRUE
 #define supportsMTLFeatureSet(MFS)	[_mtlDevice supportsFamily: MTLFeatureSet_ ##MFS]
 #else
 #define supportsMTLFeatureSet(MFS)	[_mtlDevice supportsFeatureSet: MTLFeatureSet_ ##MFS]
@@ -2461,49 +2461,49 @@ void MVKPhysicalDevice::initLimits() {
         _pixelFormats.enumerateSupportedFormats({0, 0, VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT | VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT}, true, [&](VkFormat vk) {
 			MTLPixelFormat mtlFmt = _pixelFormats.getMTLPixelFormat(vk);
 			if ( !mtlFmt ) { return false; }	// If format is invalid, avoid validation errors on MTLDevice format alignment calls
-
+            singleTexelUniform = false;
             NSUInteger alignment;
-            if ([_mtlDevice respondsToSelector: @selector(minimumTextureBufferAlignmentForPixelFormat:)]) {
-                alignment = [_mtlDevice minimumTextureBufferAlignmentForPixelFormat: mtlFmt];
-            } else {
-                alignment = [_mtlDevice minimumLinearTextureAlignmentForPixelFormat: mtlFmt];
-            }
-            VkFormatProperties& props = _pixelFormats.getVkFormatProperties(vk);
-            // For uncompressed formats, this is the size of a single texel.
-            // Note that no implementations of Metal support compressed formats
-            // in a linear texture (including texture buffers). It's likely that even
-            // if they did, this would be the absolute minimum alignment.
-            uint32_t texelSize = _pixelFormats.getBytesPerBlock(vk);
-            // From the spec:
-            //   "If the size of a single texel is a multiple of three bytes, then
-            //    the size of a single component of the format is used instead."
-            if (texelSize % 3 == 0) {
-                switch (_pixelFormats.getFormatType(vk)) {
-                case kMVKFormatColorInt8:
-                case kMVKFormatColorUInt8:
-                    texelSize = 1;
-                    break;
-                case kMVKFormatColorHalf:
-                case kMVKFormatColorInt16:
-                case kMVKFormatColorUInt16:
-                    texelSize = 2;
-                    break;
-                case kMVKFormatColorFloat:
-                case kMVKFormatColorInt32:
-                case kMVKFormatColorUInt32:
-                default:
-                    texelSize = 4;
-                    break;
-                }
-            }
-            if (mvkAreAllFlagsEnabled(props.bufferFeatures, VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT)) {
-                maxUniform = max(maxUniform, uint32_t(alignment));
-                if (alignment > texelSize) { singleTexelUniform = false; }
-            }
-            if (mvkAreAllFlagsEnabled(props.bufferFeatures, VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT)) {
-                maxStorage = max(maxStorage, uint32_t(alignment));
-                if (alignment > texelSize) { singleTexelStorage = false; }
-            }
+//            if ([_mtlDevice respondsToSelector: @selector(minimumTextureBufferAlignmentForPixelFormat:)]) {
+//                alignment = [_mtlDevice minimumTextureBufferAlignmentForPixelFormat: mtlFmt];
+//            } else {
+              //  alignment = [_mtlDevice minimumLinearTextureAlignmentForPixelFormat: mtlFmt];
+//            }
+//            VkFormatProperties& props = _pixelFormats.getVkFormatProperties(vk);
+//            // For uncompressed formats, this is the size of a single texel.
+//            // Note that no implementations of Metal support compressed formats
+//            // in a linear texture (including texture buffers). It's likely that even
+//            // if they did, this would be the absolute minimum alignment.
+//            uint32_t texelSize = _pixelFormats.getBytesPerBlock(vk);
+//            // From the spec:
+//            //   "If the size of a single texel is a multiple of three bytes, then
+//            //    the size of a single component of the format is used instead."
+//            if (texelSize % 3 == 0) {
+//                switch (_pixelFormats.getFormatType(vk)) {
+//                case kMVKFormatColorInt8:
+//                case kMVKFormatColorUInt8:
+//                    texelSize = 1;
+//                    break;
+//                case kMVKFormatColorHalf:
+//                case kMVKFormatColorInt16:
+//                case kMVKFormatColorUInt16:
+//                    texelSize = 2;
+//                    break;
+//                case kMVKFormatColorFloat:
+//                case kMVKFormatColorInt32:
+//                case kMVKFormatColorUInt32:
+//                default:
+//                    texelSize = 4;
+//                    break;
+//                }
+//            }
+//            if (mvkAreAllFlagsEnabled(props.bufferFeatures, VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT)) {
+                maxUniform = max(maxUniform, uint32_t(100));
+//                if (alignment > texelSize) { singleTexelUniform = false; }
+//            }
+//            if (mvkAreAllFlagsEnabled(props.bufferFeatures, VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT)) {
+                maxStorage = max(maxStorage, uint32_t(100));
+//                if (alignment > texelSize) { singleTexelStorage = false; }
+//            }
             return true;
         });
         _texelBuffAlignProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES_EXT;
@@ -3345,11 +3345,11 @@ void MVKPhysicalDevice::logGPUInfo() {
     if (supportsMTLFeatureSet(macOS_GPUFamily1_v1)) { logMsg += "\n\t\tmacOS GPU Family 1 v1"; }
 
 #if !MVK_MACCAT
-	if (supportsMTLFeatureSet(macOS_ReadWriteTextureTier2)) { logMsg += "\n\t\tmacOS Read-Write Texture Tier 2"; }
+	///if (supportsMTLFeatureSet(macOS_ReadWriteTextureTier2)) { logMsg += "\n\t\tmacOS Read-Write Texture Tier 2"; }
 #endif
 #endif
 
-#if MVK_MACCAT
+#if TRUE
 	if ([_mtlDevice respondsToSelector: @selector(readWriteTextureSupport)] &&
 		_mtlDevice.readWriteTextureSupport == MTLReadWriteTextureTier2) {
 		logMsg += "\n\t\tmacOS Read-Write Texture Tier 2";
